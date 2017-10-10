@@ -22,6 +22,22 @@ public:
 
   };
 
+  struct Snapshot {
+      Snapshot(int lane, int s, int v, int a, string state)
+      : _lane(lane)
+      , _s(s)
+      , _v(v)
+      , _a(a)
+      , _state(state)
+      {}
+
+      int _lane;
+      int _s;
+      int _v;
+      int _a;
+      string _state;
+  };
+
   int L = 1;
 
   int preferred_buffer = 6; // impacts "keep lane" behavior.
@@ -62,7 +78,7 @@ public:
 
   string display();
 
-  void increment(int dt);
+  void increment(int dt=1);
 
   vector<int> state_at(int t);
 
@@ -84,6 +100,12 @@ public:
 
   vector<vector<int> > generate_predictions(int horizon);
 
+private:
+  string _get_next_state(map<int,vector < vector<int> > > predictions);
+  vector< Snapshot > _trajectory_for_state(string state, map<int,vector < vector<int> > > predictions, int horizon=5);
+  Snapshot _snapshot();
+  void _restore_state_from_snapshot(Snapshot& snapshot);
+  double _calculate_cost(vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions);
 };
 
 #endif

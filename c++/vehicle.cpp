@@ -5,6 +5,10 @@
 #include <map>
 #include <string>
 #include <iterator>
+#include <algorithm>
+#include <cassert>
+
+
 
 /**
  * Initializes Vehicle
@@ -57,9 +61,117 @@ void Vehicle::update_state(map<int,vector < vector<int> > > predictions) {
     }
 
     */
-    state = "KL"; // this is an example of how you change state.
+    //state = "KL"; // this is an example of how you change state.
 
+    /*
+    state = _get_next_state(predictions);
 
+    for (auto elem : predictions)
+    {
+        int car = elem.first;
+        cout << "Car: " << car << endl;
+        for (auto tstep : elem.second)
+        {
+            for (auto val : tstep)
+            {
+                cout << val << " ";
+            }
+            cout << endl;
+        }
+        cout << endl;
+    }
+    */
+
+}
+
+string Vehicle::_get_next_state(map<int,vector < vector<int> > > predictions)
+{
+    vector<string> states = {"KL", "LCL", "LCR"};
+    if  (lane == 0)
+    {
+        auto itr = std::find(states.begin(), states.end(), string("LCL"));
+        if (itr != states.end()) states.erase(itr);
+    }
+    if (lane == lanes_available -1)
+    {
+        auto itr = std::find(states.begin(), states.end(), string("LCR"));
+        if (itr != states.end()) states.erase(itr);
+    }
+
+    typedef std::pair<std::string, double> StateCostPair;
+    vector<StateCostPair> costs;
+    for (auto state : states)
+    {
+        map<int,vector < vector<int> > > predictions_copy(predictions);
+        vector< Snapshot > trajectory = _trajectory_for_state(state, predictions_copy);
+        double cost = _calculate_cost(trajectory, predictions);
+        cout << "cost for state " << state << " = " << cost << endl;
+        costs.push_back(make_pair(state, cost));
+    }
+
+    struct CompareSecond
+    {
+      bool operator()(const StateCostPair& left, const StateCostPair& right) const
+      {
+        return left.second < right.second;
+      }
+    };
+    StateCostPair best = *min_element(costs.begin(), costs.end(), CompareSecond());
+
+    return best.first;
+
+}
+
+vector< Vehicle::Snapshot > Vehicle::_trajectory_for_state(string state, map<int,vector < vector<int> > > predictions, int horizon)
+{
+    // remember current state
+    Snapshot s = _snapshot();
+
+    // pretend to be in new proposed state
+    this->state = state;
+    vector< Snapshot > trajectory;
+    trajectory.push_back(s);
+
+    for (int i = 0; i < horizon; ++i)
+    {
+      _restore_state_from_snapshot(s);
+      this->state = state;
+      realize_state(predictions);
+      assert(0 <= lane && lane < lanes_available);
+      increment();
+      trajectory.push_back(_snapshot());
+
+      // need to remove first prediction for each vehicle.
+      // pdb.set_trace()
+      for (auto it = predictions.begin(); it != predictions.end(); ++it)
+      {
+          auto vec = it->second;
+          vec.erase(vec.begin());
+      }
+    }
+
+    // restore state from snapshot
+    _restore_state_from_snapshot(s);
+    return trajectory;
+}
+
+Vehicle::Snapshot Vehicle::_snapshot()
+{
+    return Snapshot(this->lane, this->s, this->v, this->a, this->state);
+}
+
+void Vehicle::_restore_state_from_snapshot(Vehicle::Snapshot& snapshot)
+{
+    this->lane = snapshot._lane;
+    this->s = snapshot._s;
+    this->v = snapshot._v;
+    this->a = snapshot._a;
+    this->state = snapshot._state;
+}
+
+double Vehicle::_calculate_cost(vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions)
+{
+    return 0.0;
 }
 
 void Vehicle::configure(vector<int> road_data) {
@@ -86,7 +198,7 @@ string Vehicle::display() {
     return oss.str();
 }
 
-void Vehicle::increment(int dt = 1) {
+void Vehicle::increment(int dt) {
 
     this->s += this->v * dt;
     this->v += this->a * dt;

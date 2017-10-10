@@ -29,7 +29,7 @@ int AMOUNT_OF_ROAD_VISIBLE = 40;
 
 int main() {
 
-    Road road = Road(SPEED_LIMIT, TRAFFIC_DENSITY, LANE_SPEEDS);
+    Road road(SPEED_LIMIT, TRAFFIC_DENSITY, LANE_SPEEDS);
 
     road.update_width = AMOUNT_OF_ROAD_VISIBLE;
 
