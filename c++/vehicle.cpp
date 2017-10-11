@@ -169,11 +169,6 @@ void Vehicle::_restore_state_from_snapshot(Vehicle::Snapshot& snapshot)
     this->state = snapshot._state;
 }
 
-double Vehicle::_calculate_cost(vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions)
-{
-    return 0.0;
-}
-
 void Vehicle::configure(vector<int> road_data) {
     /*
     Called by simulator before simulation begins. Sets various
