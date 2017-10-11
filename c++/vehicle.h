@@ -117,7 +117,7 @@ struct TrajectoryData {
                  double closest_approach,
                  double end_distance_to_goal,
                  int end_lanes_from_goal,
-                 bool collides)
+                 int collides)
   : _proposed_lane(proposed_lane)
   , _avg_speed(avg_speed)
   , _max_acceleration(max_acceleration)
@@ -135,12 +135,14 @@ struct TrajectoryData {
   double _closest_approach;
   double _end_distance_to_goal;
   int _end_lanes_from_goal;
-  bool _collides;
+  int _collides;
 };
 
 double change_lane_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
 double distance_from_goal_lane(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
 double inefficiency_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double collision_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double buffer_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
 
 
 TrajectoryData get_helper_data(const Vehicle& vehicle, vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions);
