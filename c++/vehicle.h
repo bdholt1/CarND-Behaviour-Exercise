@@ -23,19 +23,19 @@ public:
   };
 
   struct Snapshot {
-      Snapshot(int lane, int s, int v, int a, string state)
-      : _lane(lane)
-      , _s(s)
-      , _v(v)
-      , _a(a)
-      , _state(state)
-      {}
+    Snapshot(int lane, int s, int v, int a, string state)
+    : _lane(lane)
+    , _s(s)
+    , _v(v)
+    , _a(a)
+    , _state(state)
+    {}
 
-      int _lane;
-      int _s;
-      int _v;
-      int _a;
-      string _state;
+    int _lane;
+    int _s;
+    int _v;
+    int _a;
+    string _state;
   };
 
   int L = 1;
@@ -103,9 +103,52 @@ public:
 private:
   string _get_next_state(map<int,vector < vector<int> > > predictions);
   vector< Snapshot > _trajectory_for_state(string state, map<int,vector < vector<int> > > predictions, int horizon=5);
-  Snapshot _snapshot();
-  void _restore_state_from_snapshot(Snapshot& snapshot);
+  Snapshot _snapshot() const;
+  void _restore_state_from_snapshot(const Snapshot& snapshot);
   double _calculate_cost(vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions);
 };
+
+
+struct TrajectoryData {
+  TrajectoryData(int proposed_lane,
+                 double avg_speed,
+                 double max_acceleration,
+                 double rms_acceleration,
+                 double closest_approach,
+                 double end_distance_to_goal,
+                 int end_lanes_from_goal,
+                 int collides)
+  : _proposed_lane(proposed_lane)
+  , _avg_speed(avg_speed)
+  , _max_acceleration(max_acceleration)
+  , _rms_acceleration(rms_acceleration)
+  , _closest_approach(closest_approach)
+  , _end_distance_to_goal(end_distance_to_goal)
+  , _end_lanes_from_goal(end_lanes_from_goal)
+  , _collides(collides)
+  {}
+
+  int _proposed_lane;
+  double _avg_speed;
+  double _max_acceleration;
+  double _rms_acceleration;
+  double _closest_approach;
+  double _end_distance_to_goal;
+  int _end_lanes_from_goal;
+  int _collides;
+};
+
+double change_lane_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double distance_from_goal_lane(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double inefficiency_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double collision_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+double buffer_cost(const Vehicle &vehicle, const vector<Vehicle::Snapshot> &trajectory, const map<int,vector < vector<int> > > &predictions, const TrajectoryData &data);
+
+
+TrajectoryData get_helper_data(const Vehicle& vehicle, vector< Vehicle::Snapshot >& trajectory, map<int,vector < vector<int> > > predictions);
+
+bool check_collision(Vehicle::Snapshot& snapshot, int s_previous, int s_now);
+
+map<int,vector < vector<int> > > filter_predictions_by_lane(map<int,vector < vector<int> > > predictions, int lane);
 
 #endif
